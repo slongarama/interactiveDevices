@@ -1,12 +1,13 @@
 #!/usr/bin/python3
+import os
 import gpiozero as gp
 import time
 
 # Uses BCM pin numbering
 buttonPin = 4
 switchPin = 24
-joyX = 22
-joyY = 23
+joyXpin = 22
+joyYpin = 23
 
 button = gp.Button(buttonPin)
 switch = gp.Button(switchPin)
@@ -14,16 +15,41 @@ switch = gp.Button(switchPin)
 def button_callback(channel):
     print("Button was pushed!")
 
-state = 0
+switchState = 0
+changingMode = False
+modeCount = 1
 
 def switch_callback(channel):
-    state = not state
-    print(state)
+    global switchState
+    global changingMode
+
+    switchState = not switchState
+    changingMode = not changingMode
+    if changingMode:
+        print('CHANGE MODE ON')
+        print('----------\n')
+        print('Current state: ' + str(modeCount))
+    else:
+        print('\n----------')
+        print('CHANGE MODE OFF\n')
+
+def inc_mode(channel):
+    global modeCount
+    modeCount += 1
+    if modeCount > 3:
+        modeCount = modeCount%3
+    print("Now in state: " + str(modeCount))
+
+input('Press Enter to quit: \n\n')
 
 while True:
-    button.when_pressed = button_callback
     switch.when_pressed = switch_callback
+    switch.when_released = switch_callback
 
+    if changingMode:
+        button.when_pressed = inc_mode
+    else:
+        button.when_pressed = button_callback
 
 # firstCall = True
 # prevState = 0
