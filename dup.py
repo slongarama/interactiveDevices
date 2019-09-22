@@ -16,7 +16,8 @@ def button_callback(channel):
     print("Button was pushed!")
         # lastDebounce = 1000. * time.time()
 
-button.when_pressed = button_callback
+while True:
+    button.when_pressed = button_callback
 
 
 # firstCall = True
