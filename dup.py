@@ -2,22 +2,27 @@
 import gpiozero as gp
 import time
 
-buttonPin = 7
-switchPin = 18
-joyX = 15
-joyY = 16
+# Uses BCM pin numbering
+buttonPin = 4
+switchPin = 24
+joyX = 22
+joyY = 23
 
 button = gp.Button(buttonPin)
 switch = gp.Button(switchPin)
 
 def button_callback(channel):
-    # global lastDebounce
-    # if (time.time() * 1000. - lastDebounce > debounceDelay):
     print("Button was pushed!")
-        # lastDebounce = 1000. * time.time()
+
+state = 0
+
+def switch_callback(channel):
+    state = not state
+    print(state)
 
 while True:
     button.when_pressed = button_callback
+    switch.when_pressed = switch_callback
 
 
 # firstCall = True
