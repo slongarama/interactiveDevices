@@ -5,18 +5,21 @@ import time
 
 # Uses BCM pin numbering
 buttonPin = 4
-switchPin = 24
+switchPin = 18
 joyXpin = 22
 joyYpin = 23
 
 button = gp.Button(buttonPin)
 switch = gp.Button(switchPin)
-joyX = gp.GPIODevice(joyXpin)
+joyX = gp.Button(joyXpin)
+joyY = gp.Button(joyYpin)
 
 # Global variables
 switchState = 0
 changingMode = False
 modeCount = 1
+currX = 0
+currY = 0
 
 # Function definitions
 def button_callback():
@@ -45,9 +48,23 @@ def inc_mode():
         modeCount = modeCount%3
     print("Now in state: " + str(modeCount))
 
+def joyX_callback():
+    print('joy called')
+    sleep(500)
+
+def joyY_callback():
+    print('yyyy')
+    sleep(500)
+
 # Main loop
 while True:
-    print(joyX.value)
+    if joyX.value is 1:
+        joyX_callback()
+    if joyY.value is 1:
+        joyY_callback()
+
+    #print(joyX.value)
+    #print(joyY.value)
     switch.when_pressed = switch_callback
     switch.when_released = switch_callback
 
