@@ -1,47 +1,78 @@
 #!/usr/bin/python3
-
-import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
+import os
+import gpiozero as gp
 import time
 
-currState = 0
-switchState = 1
-lastDebounce = 0.
-debounceDelay = 250.
+# Uses BCM pin numbering
+buttonPin = 4
+switchPin = 24
+joyXpin = 22
+joyYpin = 23
 
-def button_callback(channel):
-    global lastDebounce
-    if (time.time() * 1000. - lastDebounce > debounceDelay):
-        print("Button was pushed!")
-        lastDebounce = 1000. * time.time()
+button = gp.Button(buttonPin)
+switch = gp.Button(switchPin)
+joyX = gp.Button(switchPin)
+joyY = gp.Button(switchPin)
 
-def joyx_callback(channel):
-    print('xxxxxx')
+# Global variables
+switchState = 0
+changingMode = False
+mode = 1
+emojiCount = 1
 
-def joyy_callback(channel):
-    print('yyyyyyy')
-    print(channel)
+# Function definitions
+def button_callback():
+    global emojiCount
 
-def switch_callback(channel):
+    if mode is 1:
+        print('❀' * emojiCount)
+    elif mode is 2:
+        print('☂' * emojiCount)
+    elif mode is 3:
+        print('☃' * emojiCount)
+
+def switch_callback():
     global switchState
-    global currState
-    print(currState, switchState)
-    currState = GPIO.input(channel)
-    if currState != switchState:
-        print('switched!')
-        switchState=currState
+    global changingMode
 
-GPIO.setwarnings(False) # Ignore warning for now
-GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
-GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(10,GPIO.RISING,callback=button_callback) # Setup event on pin 10 rising edge
-GPIO.add_event_detect(15,GPIO.RISING,callback=joyx_callback)
-GPIO.add_event_detect(16,GPIO.RISING,callback=joyy_callback)
-GPIO.add_event_detect(18,GPIO.RISING,callback=switch_callback)
+    switchState = not switchState
+    changingMode = not changingMode
 
-message = input("Press enter to quit\n\n") # Run until someone presses enter
-GPIO.cleanup() # Clean up
+    if changingMode:
+        print('\n----------')
+        print('CHANGE MODE ON')
+        print('----------\n')
+        print('Current mode: ' + str(mode))
+    else:
+        print('\n----------')
+        print('CHANGE MODE OFF')
+        print('----------\n')
 
+    if joyX.value is 1:
+        emojiCount += 1
+    # elif joyY.value is 1:
+    #     emojiCount -= 1
 
+def inc_mode():
+    global mode
+    mode += 1
+    if mode > 3:
+        mode = mode%3
+
+    # Print funny mode names
+    if mode is 1:
+        print('1: Flower Power Mode')
+    elif mode is 2:
+        print('2: Rainy Day Mode')
+    elif mode is 3:
+        print('3: Winter is Coming')
+
+# Main loop
+while True:
+    switch.when_held = switch_callback
+    switch.when_released = switch_callback
+
+    if changingMode:
+        button.when_pressed = inc_mode
+    else:
+        button.when_pressed = button_callback
